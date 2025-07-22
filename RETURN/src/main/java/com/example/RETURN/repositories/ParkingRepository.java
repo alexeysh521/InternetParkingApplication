@@ -6,8 +6,9 @@ import com.example.RETURN.models.ParkingSpace;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface ParkingRepository extends JpaRepository<ParkingSpace, Long> {
+public interface ParkingRepository extends JpaRepository<ParkingSpace, Integer> {
 
     boolean existsByParkingSlotNumber(ParkingSlotNumber number);
 

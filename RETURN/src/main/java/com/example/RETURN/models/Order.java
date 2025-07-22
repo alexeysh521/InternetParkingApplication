@@ -1,5 +1,6 @@
 package com.example.RETURN.models;
 
+import com.example.RETURN.enums.OrderSlotStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -14,9 +15,11 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;//id заказа
 
-    private long price;//стоимость заказа
+    private int price;//стоимость заказа
 
-    private boolean statusOrder = true;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private OrderSlotStatus orderSlotStatus = OrderSlotStatus.ACTIVE;//статус заказа
 
     @FutureOrPresent
     private LocalDateTime startTime;//начало парковки
@@ -32,7 +35,7 @@ public class Order {
     @JoinColumn(name = "parking_id")
     private ParkingSpace parking;//данные о парковочном месте
 
-    public Order(User user, ParkingSpace parking, long price, LocalDateTime startTime,
+    public Order(User user, ParkingSpace parking, int price, LocalDateTime startTime,
                  LocalDateTime endTime) {
         this.user = user;
         this.parking = parking;
@@ -43,12 +46,12 @@ public class Order {
 
     public Order() {}
 
-    public boolean isStatusOrder() {
-        return statusOrder;
+    public OrderSlotStatus getOrderSlotStatus() {
+        return orderSlotStatus;
     }
 
-    public void setStatusOrder(boolean status_order) {
-        this.statusOrder = status_order;
+    public void setOrderSlotStatus(OrderSlotStatus statusOrder1) {
+        this.orderSlotStatus = statusOrder1;
     }
 
     public LocalDateTime getEndTime() {
@@ -91,11 +94,11 @@ public class Order {
         this.parking = parking;
     }
 
-    public long getPrice() {
+    public int getPrice() {
         return price;
     }
 
-    public void setPrice(long price) {
+    public void setPrice(int price) {
         this.price = price;
     }
 
@@ -105,7 +108,7 @@ public class Order {
                 "endTime=" + endTime +
                 ", id=" + id +
                 ", price=" + price +
-                ", statusOrder=" + statusOrder +
+                ", statusOrder=" + orderSlotStatus +
                 ", startTime=" + startTime +
                 ", user=" + user +
                 ", parking=" + parking +

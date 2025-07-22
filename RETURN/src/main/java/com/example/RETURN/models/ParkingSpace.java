@@ -12,7 +12,7 @@ public class ParkingSpace {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private int id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "number")
@@ -66,11 +66,11 @@ public class ParkingSpace {
         this.orders = orders;
     }
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 }
