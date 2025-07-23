@@ -4,34 +4,46 @@ import com.example.RETURN.dto.CarDto;
 import com.example.RETURN.models.Car;
 import com.example.RETURN.models.User;
 import com.example.RETURN.repositories.CarRepository;
+import com.example.RETURN.services.impl.CarService;
+import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
-public class CarService {
+public class CarServiceImpl implements CarService {
 
-    @Autowired private CarRepository carRepository;
+    private final CarRepository carRepository;
 
-    @Autowired private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public CarServiceImpl(CarRepository carRepository, ModelMapper modelMapper) {
+        this.carRepository = carRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Transactional
     public void save(Car car){
         carRepository.save(car);
     }
 
-    public List<Car> findByUser(User user){
-        return carRepository.findByUser(user).orElse(null);
+    public List<CarDto> findByUser(int id){
+        List<Car> cars = carRepository.findCarsByUserId(id);
+        if(cars.isEmpty())
+            throw new EntityNotFoundException("Автомобилей не найдено");
+        return cars.stream()
+                .map(this::convertToDto)
+                .toList();
     }
 
-    public boolean existsByNumber(String number){
-        return carRepository.existsByNumber(number);
+    public List<CarDto> findAll(){
+        return carRepository.findAll().stream()
+                .map(this::convertToDto)
+                .toList();
     }
 
     @Transactional
@@ -42,7 +54,7 @@ public class CarService {
                 request.getColor(),
                 user
         );
-        carRepository.save(car);
+        save(car);
 
         return convertToDto(car);
     }

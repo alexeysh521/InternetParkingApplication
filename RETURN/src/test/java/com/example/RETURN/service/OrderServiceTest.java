@@ -9,8 +9,8 @@
 //import com.example.RETURN.repositories.OrderRepository;
 //import com.example.RETURN.repositories.ParkingRepository;
 //import com.example.RETURN.repositories.UserRepository;
-//import com.example.RETURN.services.OrderAndUserUtilsService;
-//import com.example.RETURN.services.OrderService;
+//import com.example.RETURN.services.OrderAndUserUtilsServiceImpl;
+//import com.example.RETURN.services.OrderServiceImpl;
 //import jakarta.persistence.EntityNotFoundException;
 //import jakarta.validation.ConstraintViolation;
 //import jakarta.validation.Validation;
@@ -39,9 +39,9 @@
 //    @Mock private OrderRepository orderRepository;
 //    @Mock private UserRepository userRepository;
 //    @Mock private ParkingRepository parkingRepository;
-//    @Mock private OrderAndUserUtilsService orderAndUserUtilsService;
+//    @Mock private OrderAndUserUtilsServiceImpl orderAndUserUtilsService;
 //
-//    @InjectMocks private OrderService orderService;
+//    @InjectMocks private OrderServiceImpl orderService;
 //
 //    private final LocalDateTime startTime = LocalDateTime.now();
 //    private final LocalDateTime endTime = LocalDateTime.now().plusDays(1);

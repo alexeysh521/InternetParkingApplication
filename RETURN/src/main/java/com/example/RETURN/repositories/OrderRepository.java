@@ -24,4 +24,6 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("SELECT o FROM Order o WHERE o.orderSlotStatus = 'ACTIVE'")
     List<Order> findAllActiveOrder();
 
+    List<Order> findAllOrderByUser(User user);
+
 }

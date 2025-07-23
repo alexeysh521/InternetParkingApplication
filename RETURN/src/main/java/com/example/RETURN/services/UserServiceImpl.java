@@ -2,34 +2,28 @@ package com.example.RETURN.services;
 
 import com.example.RETURN.dto.*;
 import com.example.RETURN.enums.DepositDtoSlotBalance;
-import com.example.RETURN.enums.OrderSlotStatus;
-import com.example.RETURN.enums.ParkingSlotNumber;
-import com.example.RETURN.enums.ParkingSlotSize;
-import com.example.RETURN.models.Order;
 import com.example.RETURN.models.User;
-import com.example.RETURN.repositories.OrderRepository;
-import com.example.RETURN.repositories.ParkingRepository;
 import com.example.RETURN.repositories.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.example.RETURN.services.impl.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
-public class UserService {
+public class UserServiceImpl implements UserService {
 
-    @Autowired private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper) {
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Transactional
     public void save(User user){
@@ -38,20 +32,6 @@ public class UserService {
 
     public boolean existsByUserName(String userName){
         return userRepository.existsByUserName(userName);
-    }
-
-    public User findById(long id){
-        return userRepository.findById(id).orElseThrow(()
-                -> new UsernameNotFoundException("Пользователь не найден"));
-    }
-
-    public User findByUserName(String userName){
-        return userRepository.findByUserName(userName)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
-    }
-
-    public boolean existsOrderByUsername(String name){
-        return userRepository.existsOrderByUserName(name);
     }
 
     public List<User> userList(){

@@ -4,13 +4,13 @@ import com.example.RETURN.dto.*;
 import com.example.RETURN.enums.OrderSlotStatus;
 import com.example.RETURN.enums.ParkingSlotNumber;
 import com.example.RETURN.enums.ParkingSlotSize;
-import com.example.RETURN.models.Car;
 import com.example.RETURN.models.Order;
 import com.example.RETURN.models.ParkingSpace;
 import com.example.RETURN.models.User;
 import com.example.RETURN.repositories.OrderRepository;
 import com.example.RETURN.repositories.ParkingRepository;
 import com.example.RETURN.repositories.UserRepository;
+import com.example.RETURN.services.impl.OrderService;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,24 +21,42 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
-public class OrderService {
+public class OrderServiceImpl implements OrderService {
 
-    @Autowired private OrderRepository orderRepository;
-    @Autowired private UserRepository userRepository;
-    @Autowired private ParkingRepository parkingRepository;
-    @Autowired private OrderAndUserUtilsService orderAndUserUtilsService;
+    private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
+    private final ParkingRepository parkingRepository;
 
-    @Autowired private ModelMapper modelMapper;
-    @Autowired private CarService carService;
+    private final OrderAndUserUtilsServiceImpl orderAndUserUtilsService;
+
+    private final ModelMapper modelMapper;
+
+    public OrderServiceImpl(OrderRepository orderRepository, UserRepository userRepository,
+                            ParkingRepository parkingRepository, OrderAndUserUtilsServiceImpl orderAndUserUtilsService,
+                            ModelMapper modelMapper) {
+        this.orderRepository = orderRepository;
+        this.userRepository = userRepository;
+        this.parkingRepository = parkingRepository;
+        this.orderAndUserUtilsService = orderAndUserUtilsService;
+        this.modelMapper = modelMapper;
+    }
 
     @Transactional
     public void save(Order order){
         orderRepository.save(order);
+    }
+
+    public List<OrderInfoDto> forViewOrdersByUser(AnEntityWithAnIdOnlyDto dto){
+        User user = userRepository.findById(dto.getId())
+                .orElseThrow(EntityNotFoundException::new);
+        List<Order> orders = orderRepository.findAllOrderByUser(user);
+
+        return orders.stream()
+                .map(this::convertToDto)
+                .toList();
     }
 
     @Transactional
@@ -46,7 +64,7 @@ public class OrderService {
         long hours = Duration.between(orderDto.getStartTime(), orderDto.getEndTime()).toHours();//кол-во часов
         int price = (int) hours * (ParkingSlotSize.getPriceByName(orderDto.getSize()));//цена кол-во часов * стоимость часа
 
-        if(!orderAndUserUtilsService.balance(user, price)){//проверка баланса пользователя
+        if(!orderAndUserUtilsService.balanceUser(user, price)){//проверка баланса пользователя
             throw new IllegalArgumentException(
                     String.format("Недостаточно средств для оформления заказа стоимостью %d рублей. " +
                     "Пополните счет на %d рублей.", price, Math.abs(user.getBalance() - price))
@@ -90,12 +108,6 @@ public class OrderService {
         return orders.stream()
                 .map(this::convertToDto)
                 .toList();
-    }
-
-    //по имени пользователя проверяем действителен ли еще его заказ, и если да вернем пользователя
-    public User checkRemainedTime(String username) {
-        return userRepository.findByUserName(username).orElseThrow(()
-                -> new UsernameNotFoundException("Пользователь не найден"));
     }
 
     @Transactional
@@ -142,7 +154,7 @@ public class OrderService {
         int price = (int) hours * ParkingSlotSize.getPriceByName(order.getParking()
                 .getParkingSlotSize().name());//по номеру парковки получаем цену за час и * на кол-во часов разниц
 
-        if(!orderAndUserUtilsService.balance(user, price)){//проверка баланса пользователя
+        if(!orderAndUserUtilsService.balanceUser(user, price)){//проверка баланса пользователя
             throw new IllegalArgumentException(String.format(
                     "Недостаточно средств для оформления продления заказа стоимостью %d рублей.\n" +
                             "Пополните счет на %d рублей.", price, Math.abs(user.getBalance() - price)));

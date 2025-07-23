@@ -7,6 +7,7 @@ import com.example.RETURN.enums.ParkingSlotNumber;
 import com.example.RETURN.enums.ParkingSlotSize;
 import com.example.RETURN.models.ParkingSpace;
 import com.example.RETURN.repositories.ParkingRepository;
+import com.example.RETURN.services.impl.ParkingService;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +18,16 @@ import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
-public class ParkingService {
+public class ParkingServiceImpl implements ParkingService {
 
-    @Autowired private ParkingRepository parkingRepository;
+    private final ParkingRepository parkingRepository;
 
-    @Autowired private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public ParkingServiceImpl(ParkingRepository parkingRepository, ModelMapper modelMapper) {
+        this.parkingRepository = parkingRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Transactional
     public void create(ParkingSpace parking) {

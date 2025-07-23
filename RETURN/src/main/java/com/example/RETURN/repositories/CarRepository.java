@@ -12,6 +12,6 @@ public interface CarRepository extends JpaRepository<Car, Integer> {
 
     boolean existsByNumber(String number);
 
-    Optional<List<Car>> findByUser(User user);
+    List<Car> findCarsByUserId(Integer userId);
 
 }

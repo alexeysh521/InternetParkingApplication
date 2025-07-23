@@ -1,6 +1,6 @@
 package com.example.RETURN.filter;
 
-import com.example.RETURN.services.JwtService;
+import com.example.RETURN.services.JwtServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +18,7 @@ import java.io.IOException;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
-    @Autowired private JwtService jwtService;
+    @Autowired private JwtServiceImpl jwtService;
     @Autowired private UserDetailsService userDetailsService;
 
     @Override

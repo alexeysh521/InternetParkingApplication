@@ -2,7 +2,7 @@
 //
 //import com.example.RETURN.models.User;
 //import com.example.RETURN.repositories.UserRepository;
-//import com.example.RETURN.services.UserService;
+//import com.example.RETURN.services.UserServiceImpl;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;
 //import org.mockito.InjectMocks;
@@ -21,7 +21,7 @@
 //    private UserRepository userRepository;
 //
 //    @InjectMocks
-//    private UserService userService;
+//    private UserServiceImpl userService;
 //
 //    @Test
 //    void save_ifItPersistsUser_theUserSave() {

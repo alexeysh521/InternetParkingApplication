@@ -3,8 +3,8 @@ package com.example.RETURN.controllers;
 import com.example.RETURN.dto.AuthRequest;
 import com.example.RETURN.dto.RegisterRequest;
 import com.example.RETURN.models.User;
-import com.example.RETURN.services.JwtService;
-import com.example.RETURN.services.UserService;
+import com.example.RETURN.services.JwtServiceImpl;
+import com.example.RETURN.services.UserServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     @Autowired private AuthenticationManager authenticationManager;
-    @Autowired private JwtService jwtService;
+    @Autowired private JwtServiceImpl jwtService;
     @Autowired private UserDetailsService userDetailsService;
     @Autowired private PasswordEncoder passwordEncoder;
-    @Autowired private UserService userService;
+    @Autowired private UserServiceImpl userService;
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@Valid @RequestBody AuthRequest request) {//войти в свой аккаунт

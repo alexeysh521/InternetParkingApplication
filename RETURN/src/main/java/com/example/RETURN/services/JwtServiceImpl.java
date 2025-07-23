@@ -1,5 +1,6 @@
 package com.example.RETURN.services;
 
+import com.example.RETURN.services.impl.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class JwtService {
+public class JwtServiceImpl implements JwtService {
     @Value("${jwt.secret}")
     private String secretKey; // секретный ключ для подписи токена
 
