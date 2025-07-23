@@ -21,4 +21,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("SELECT o FROM Order o JOIN FETCH o.parking WHERE o.user = :user")
     List<Order> findAllByUserWithParking(@Param("user") User user);
 
+    @Query("SELECT o FROM Order o WHERE o.orderSlotStatus = 'ACTIVE'")
+    List<Order> findAllActiveOrder();
+
 }

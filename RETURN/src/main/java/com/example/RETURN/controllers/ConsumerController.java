@@ -58,16 +58,16 @@ public class ConsumerController {
         return ResponseEntity.ok(carService.forCreateCar(request, user));
     }
 
-    @PostMapping("/terminateOrder")//завершить заказ по номеру парк.места
+    @PostMapping("/terminateOrder")//завершить заказ по номеру парк.места                                             CHECK
     public ResponseEntity<?> terminatedOrder(@Valid @RequestBody TerminateOrderDto request,
                                                   @AuthenticationPrincipal User user){
-        return ResponseEntity.ok(userService.forTerminatedOrder(request, user));
+        return ResponseEntity.ok(orderService.forTerminatedOrder(request, user));
     }
 
-    @PostMapping("/extendOrder")//продлить заказ
+    @PostMapping("/extendOrder")//продлить заказ                                                                      CHECK
     public ResponseEntity<?> extendOrder(@Valid @RequestBody ExtendOrderDto request,
                                                          @AuthenticationPrincipal User user){
-        return ResponseEntity.ok(userService.forExtendOrder(request, user));
+        return ResponseEntity.ok(orderService.forExtendOrder(request, user));
     }
 
 }

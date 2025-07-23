@@ -42,19 +42,13 @@ public class ParkingService {
     }
 
     @Transactional
-    public String forCreateParkingSpace(CreateParkingSpaceDto parkingDto){
-        if(!ParkingSlotNumber.isValidNumber(parkingDto.getNumber()))
-            return "Неверный ввод парковочного места.";
-
-        ParkingSlotSize size = ParkingSlotSize.fromStringParking(parkingDto.getSize().toUpperCase());
-        ParkingSlotNumber number = ParkingSlotNumber.fromStringNumber(parkingDto.getNumber().toUpperCase());
+    public InfoParkingSpaceDto forCreateParkingSpace(CreateParkingSpaceDto parkingDto){
         ParkingSpace parking = new ParkingSpace(
-                number,
-                size
+                ParkingSlotNumber.fromStringNumber(parkingDto.getNumber()),
+                ParkingSlotSize.fromStringParking(parkingDto.getSize())
         );
         parkingRepository.save(parking);
-        return String.format("Создано парковочное место:\nномер %s \nразмер %s",
-                parkingDto.getNumber(), parkingDto.getSize());
+        return convertToDto(parking);
     }
 
     public List<ParkingSpace> findBySize(ParkingSlotSize size){
@@ -65,12 +59,16 @@ public class ParkingService {
     }
 
     @Transactional
-    public String forDeleteParkingSpace(AnEntityWithAnIdOnlyDto dto){
-        ParkingSpace space = parkingRepository.findById(dto.getId()).orElseThrow(EntityNotFoundException::new);//есть ли вообще такое парк.место?
-        if(!space.isStatus())
-            throw new EntityNotFoundException("Что бы удалить парковочное место, освободите его.");
-        parkingRepository.delete(space);
-        return String.format("Парковочное место номер %s удалено", space.getParkingSlotNumber());
+    public InfoParkingSpaceDto forDeleteParkingSpace(AnEntityWithAnIdOnlyDto dto){
+        List<ParkingSpace> space = parkingRepository.findByIdList(dto.getId());
+
+        return space.stream()
+                .filter(ParkingSpace::isStatus)//если он true - то удалит, иначе исключение
+                .peek(ps -> parkingRepository.delete(ps))
+                .map(this::convertToDto)
+                .findFirst()
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Чтобы удалить парковочное место необходимо освободить его."));
     }
 
     public InfoParkingSpaceDto convertToDto(ParkingSpace space){

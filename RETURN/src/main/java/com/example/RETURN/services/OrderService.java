@@ -1,9 +1,8 @@
 package com.example.RETURN.services;
 
-import com.example.RETURN.dto.CarDto;
-import com.example.RETURN.dto.OrderCreateDto;
-import com.example.RETURN.dto.OrderInfoDto;
-import com.example.RETURN.dto.UserInfoDto;
+import com.example.RETURN.dto.*;
+import com.example.RETURN.enums.OrderSlotStatus;
+import com.example.RETURN.enums.ParkingSlotNumber;
 import com.example.RETURN.enums.ParkingSlotSize;
 import com.example.RETURN.models.Car;
 import com.example.RETURN.models.Order;
@@ -22,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -39,10 +39,6 @@ public class OrderService {
     @Transactional
     public void save(Order order){
         orderRepository.save(order);
-    }
-
-    public String truOrFalseFromStr(boolean b){
-        return b ? "Активен" : "Не активен";
     }
 
     @Transactional
@@ -100,6 +96,78 @@ public class OrderService {
     public User checkRemainedTime(String username) {
         return userRepository.findByUserName(username).orElseThrow(()
                 -> new UsernameNotFoundException("Пользователь не найден"));
+    }
+
+    @Transactional
+    public OrderInfoDto forTerminatedOrder(TerminateOrderDto request, User user){//
+
+        ParkingSlotNumber requestSlot = ParkingSlotNumber.fromStringNumber(request.getNumber());
+        List<Order> orders = orderRepository.findAllByUserWithParking(user);
+
+        return orders.stream()
+                .filter(order -> order.getParking().getParkingSlotNumber() == requestSlot)
+                .peek(order -> {
+                    order.getParking().setStatus(true);
+                    order.setOrderSlotStatus(OrderSlotStatus.COMPLETED);
+                })
+                .map(this::convertToDto)
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("У вас нет заказов на это место."));
+    }
+
+    @Transactional
+    public OrderInfoDto forExtendOrder(ExtendOrderDto request, User user){//
+        //найти активные заказы пользователя
+        List<Order> orders = orderRepository.findAllByUserWithParking(user);
+
+        LocalDateTime extend = request.getExtendTime();
+
+        ParkingSlotNumber requestSlot = ParkingSlotNumber.fromStringNumber(request.getNumber());
+
+        Order order = orders.stream()
+                .filter(order1 -> order1.getParking().getParkingSlotNumber() == requestSlot)
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("У вас нет заказов с номером " + requestSlot));
+
+        if(!extend.isAfter(order.getEndTime()) || extend.isEqual(order.getEndTime()))
+            throw new IllegalArgumentException("Введите корректную дату продления.");
+
+        extendOrder(order, user, order.getEndTime(), extend);
+
+        return convertToDto(order);
+    }
+
+    private void extendOrder(Order order, User user, LocalDateTime endTime, LocalDateTime extendTime){
+        long hours = Duration.between(endTime, extendTime).toHours();//кол-во часов (разница на сколько мы продлеваем)
+        int price = (int) hours * ParkingSlotSize.getPriceByName(order.getParking()
+                .getParkingSlotSize().name());//по номеру парковки получаем цену за час и * на кол-во часов разниц
+
+        if(!orderAndUserUtilsService.balance(user, price)){//проверка баланса пользователя
+            throw new IllegalArgumentException(String.format(
+                    "Недостаточно средств для оформления продления заказа стоимостью %d рублей.\n" +
+                            "Пополните счет на %d рублей.", price, Math.abs(user.getBalance() - price)));
+        }else
+            user.setBalance(user.getBalance() -  price);//списываем деньги со счета
+
+        order.setPrice(order.getPrice() + price);//делаем новую стоимость заказа и сохраняем
+        order.setEndTime(extendTime);//сохраняем время до которого продливаем
+
+        save(order);
+        userRepository.save(user);
+    }
+
+    public List<OrderInfoDto> forAllOrders(){//
+        return orderRepository.findAll().stream()
+                .map(this::convertToDto)
+                .toList();
+    }
+
+    public List<OrderInfoDto> forViewActiveOrders(){//
+        List<Order> active = orderRepository.findAllActiveOrder();
+
+        return active.stream()
+                .map(this::convertToDto)
+                .toList();
     }
 
     public OrderInfoDto convertToDto(Order order){
