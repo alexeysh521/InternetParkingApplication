@@ -13,14 +13,15 @@ import com.example.RETURN.repositories.UserRepository;
 import com.example.RETURN.services.impl.OrderService;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
@@ -51,7 +52,7 @@ public class OrderServiceImpl implements OrderService {
 
     public List<OrderInfoDto> forViewOrdersByUser(AnEntityWithAnIdOnlyDto dto){
         User user = userRepository.findById(dto.getId())
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден."));
         List<Order> orders = orderRepository.findAllOrderByUser(user);
 
         return orders.stream()
@@ -59,10 +60,38 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
     }
 
+    public List<OrderInfoDto> forViewMyOrders(User user){
+        List<Order> orders = orderRepository.findAllOrderByUser(user);
+
+        if(orders.isEmpty())
+            throw new EntityNotFoundException("У вас нет заказов.");
+
+        return orders.stream()
+                .map(this::convertToDto)
+                .toList();
+    }
+
+    private int orderRate(LocalDateTime start, LocalDateTime end, OrderCreateDto dto){//тарифный план
+        long hours = Duration.between(start, end).toHours();
+        int pricePerHours = ParkingSlotSize.getPriceByName(dto.getSize());
+        double price;
+
+        long month = ChronoUnit.MONTHS.between(start, end);
+
+        if(hours <= 24)
+            price = hours * pricePerHours;//цена кол-во часов * стоимость часа
+        else if(month < 1)
+            price = hours * pricePerHours * 0.58; //больше одного дня скидка 42% за час
+        else
+            price = hours * pricePerHours * 0.34;//месяц и более
+
+        return (int) Math.round(price);
+    }
+
     @Transactional
     public OrderInfoDto fromCreateOrder(OrderCreateDto orderDto, User user){
-        long hours = Duration.between(orderDto.getStartTime(), orderDto.getEndTime()).toHours();//кол-во часов
-        int price = (int) hours * (ParkingSlotSize.getPriceByName(orderDto.getSize()));//цена кол-во часов * стоимость часа
+
+        int price = orderRate(orderDto.getStartTime(), orderDto.getEndTime(), orderDto);
 
         if(!orderAndUserUtilsService.balanceUser(user, price)){//проверка баланса пользователя
             throw new IllegalArgumentException(
@@ -111,20 +140,19 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional
-    public OrderInfoDto forTerminatedOrder(TerminateOrderDto request, User user){//
+    public OrderInfoDto forTerminatedOrder(TerminateOrderDto request, User user){
+        Order order = orderRepository.findByUserAndId(user, request.getOrderId())
+            .filter(o -> o.getOrderSlotStatus() == OrderSlotStatus.ACTIVE ||
+                o.getOrderSlotStatus() == OrderSlotStatus.OVERDUE)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "У вас нет заказов с таким id, либо заказы завершенные."
+            ));
 
-        ParkingSlotNumber requestSlot = ParkingSlotNumber.fromStringNumber(request.getNumber());
-        List<Order> orders = orderRepository.findAllByUserWithParking(user);
+        order.getParking().setStatus(true);
+        order.setOrderSlotStatus(OrderSlotStatus.COMPLETED);
+        //можно реализовать возврат денежных средств.
 
-        return orders.stream()
-                .filter(order -> order.getParking().getParkingSlotNumber() == requestSlot)
-                .peek(order -> {
-                    order.getParking().setStatus(true);
-                    order.setOrderSlotStatus(OrderSlotStatus.COMPLETED);
-                })
-                .map(this::convertToDto)
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("У вас нет заказов на это место."));
+        return convertToDto(order);
     }
 
     @Transactional

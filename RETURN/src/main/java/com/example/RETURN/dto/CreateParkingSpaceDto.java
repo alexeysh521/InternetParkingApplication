@@ -9,7 +9,7 @@ import lombok.Data;
 public class CreateParkingSpaceDto {
 
     @NotNull(message = "Номер парковки обязателен")
-    @Pattern(regexp = "^[A-E](1[0-2]|[1-9])$", message = "Номер должен содержать только латинские буквы и цифры")
+    @Pattern(regexp = "^(?i)[A-E](1[0-2]|[1-9])$", message = "Номер должен содержать только латинские буквы и цифры")
     @UniqueNumberPS
     private String number;//номер парковки
 

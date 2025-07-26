@@ -1,12 +1,12 @@
 package com.example.RETURN.dto;
 
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class TerminateOrderDto {
 
-    @Pattern(regexp = "^[A-Za-z0-9]+$", message = "Номер должен содержать только латинские буквы и цифры")
-    private String number;
+    @NotNull(message = "Поле не должно быть пустым.")
+    private long orderId;
 
 }

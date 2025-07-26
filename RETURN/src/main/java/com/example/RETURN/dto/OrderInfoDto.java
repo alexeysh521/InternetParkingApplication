@@ -13,6 +13,8 @@ public class OrderInfoDto {
     //private UserInfoDto user;
     private int id;
 
+    private int userId;
+
     private String userName;
 
     private LocalDateTime startTime;

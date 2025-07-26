@@ -46,7 +46,7 @@ public class ConsumerController {
         return ResponseEntity.ok(userService.forBalanceOperation(depositDto, user));
     }
 
-    @GetMapping("/freeParkSpace")//просмотр, какие места свободны
+    @GetMapping("/free/parkSpace")//просмотр, какие места свободны
     public ResponseEntity<?> freeParkingSpace(){
         return ResponseEntity.ok(parkingService.forFreeParkSpace());
     }
@@ -57,19 +57,24 @@ public class ConsumerController {
         return ResponseEntity.ok(orderService.fromCreateOrder(orderDto, user));
     }
 
-    @PostMapping("/registrationCar")//зарегистрировать свой автомобиль
+    @PostMapping("/registration/car")//зарегистрировать свой автомобиль
     public ResponseEntity<?> createCar(@Valid @RequestBody CarDto request,
                                             @AuthenticationPrincipal User user){
         return ResponseEntity.ok(carService.forCreateCar(request, user));
     }
 
-    @PostMapping("/terminateOrder")//завершить заказ по номеру парк.места
+    @GetMapping("/view/myOrders")//просмотр заказов пользователя
+    public ResponseEntity<?> viewMyOrders(@AuthenticationPrincipal User user){
+        return ResponseEntity.ok(orderService.forViewMyOrders(user));
+    }
+
+    @PostMapping("/terminate/order")//завершить заказ по id заказа
     public ResponseEntity<?> terminatedOrder(@Valid @RequestBody TerminateOrderDto request,
                                                   @AuthenticationPrincipal User user){
         return ResponseEntity.ok(orderService.forTerminatedOrder(request, user));
     }
 
-    @PostMapping("/extendOrder")//продлить заказ
+    @PostMapping("/extend/order")//продлить заказ
     public ResponseEntity<?> extendOrder(@Valid @RequestBody ExtendOrderDto request,
                                                          @AuthenticationPrincipal User user){
         return ResponseEntity.ok(orderService.forExtendOrder(request, user));

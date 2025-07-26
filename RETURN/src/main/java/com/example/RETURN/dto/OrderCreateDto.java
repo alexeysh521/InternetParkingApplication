@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class OrderCreateDto {
 
     @NotNull(message = "Размеры парковочного места обязательны")
-    @Pattern(regexp = "s|m|l|xl|xxl|xxxl", message = "введен некорректный размер парковочного места")
+    @Pattern(regexp = "(?i)S|M|L|XL|XXL", message = "введен некорректный размер парковочного места")
     private String size;
 
     @NotNull(message = "Поле обязательно")

@@ -8,12 +8,9 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Integer> {
-
-    boolean existsByUser(User user);
-
-    List<Order> findAllByUser(User user);
 
     @Query("SELECT o FROM Order o WHERE o.user = :user AND o.orderSlotStatus = 'ACTIVE' AND o.endTime > :now")
     List<Order> findAllActiveOrdersAfterNow(@Param("user") User user, @Param("now") LocalDateTime now);
@@ -25,5 +22,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findAllActiveOrder();
 
     List<Order> findAllOrderByUser(User user);
+
+    Optional<Order> findByUserAndId(User user, Long id);
 
 }

@@ -35,7 +35,7 @@ public class AuthController {
         UserDetails user = userDetailsService.loadUserByUsername(request.getUserName());
         String token = jwtService.generateToken(user);
 
-        return ResponseEntity.ok("Вход выполнен. Token: " + token);
+        return ResponseEntity.ok("Bearer " + token);
     }
 
 
@@ -57,7 +57,7 @@ public class AuthController {
 
         UserDetails userd = userDetailsService.loadUserByUsername(request.getUserName());
         String token = jwtService.generateToken(userd);
-        return ResponseEntity.ok("Пользователь создан с token: " + token);
+        return ResponseEntity.ok("Bearer " + token);
     }
 
 

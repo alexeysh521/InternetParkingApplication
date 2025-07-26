@@ -55,17 +55,17 @@ public class AdminController {
         return ResponseEntity.ok(parkingService.forDeleteParkingSpace(dto));
     }
 
-    @PostMapping("/view/orders/user")//метод для просмотра всех заказов конкретного пользователя
+    @PostMapping("/view/orders/by/user")//метод для просмотра всех заказов конкретного пользователя
     public ResponseEntity<?> viewOrdersByUser(@Valid @RequestBody AnEntityWithAnIdOnlyDto dto){
         return ResponseEntity.ok(orderService.forViewOrdersByUser(dto));
     }
 
-    @GetMapping("/view/cars")//метод для просмотра всех зарегистрированных автомобилей
+    @GetMapping("/view/all/cars")//метод для просмотра всех зарегистрированных автомобилей
     public ResponseEntity<?> viewCars(){
         return ResponseEntity.ok(carService.findAll());
     }
 
-    @PostMapping("/view/cars/user")//метод для просмотра всех автомобилей конкретного пользователя
+    @PostMapping("/view/cars/by/user")//метод для просмотра всех автомобилей конкретного пользователя
     public ResponseEntity<?> viewCarsByUser(@Valid @RequestBody AnEntityWithAnIdOnlyDto dto){
         return ResponseEntity.ok(carService.findByUser(dto.getId()));
     }

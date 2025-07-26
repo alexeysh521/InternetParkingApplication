@@ -8,7 +8,9 @@ import lombok.Data;
 @Data
 public class CarDto {
 
-    private int id;
+    private int carId;
+
+    private int userId;
 
     @NotNull(message = "Поле не должно быть пустым.")
     private String model;
@@ -20,6 +22,6 @@ public class CarDto {
     @NotNull(message = "Поле не должно быть пустым.")
     private String color;
 
-    private String userName;
+
 
 }

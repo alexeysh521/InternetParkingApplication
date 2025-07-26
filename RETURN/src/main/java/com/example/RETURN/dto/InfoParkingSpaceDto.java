@@ -17,5 +17,4 @@ public class InfoParkingSpaceDto {
 
     private Boolean status;
 
-    private List<Order> orders;
 }

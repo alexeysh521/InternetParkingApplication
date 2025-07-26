@@ -3,10 +3,10 @@ package com.example.RETURN.enums;
 import jakarta.persistence.EntityNotFoundException;
 
 public enum ParkingSlotSize {
-    S(2.3, 4.5, 2.0, 40),
-    M(2.5, 5.0, 2.0, 60),
-    L(2.7, 5.5, 2.2, 80),
-    XL(3.0, 6.0, 2.5, 100),
+    S(2.3, 4.5, 2.0, 30),
+    M(2.5, 5.0, 2.0, 50),
+    L(2.7, 5.5, 2.2, 70),
+    XL(3.0, 6.0, 2.5, 90),
     XXL(3.0, 10.0, 3.5, 150);
 
     private final double wight;
