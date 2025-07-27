@@ -70,4 +70,9 @@ public class AdminController {
         return ResponseEntity.ok(carService.findByUser(dto.getId()));
     }
 
+    @GetMapping("/view/all/parkingSpaces")//просмотр всех парковочных мест
+    public ResponseEntity<?> viewAllParkingSpaces(){
+        return ResponseEntity.ok(parkingService.fromViewAllParkingSpaces());
+    }
+
 }

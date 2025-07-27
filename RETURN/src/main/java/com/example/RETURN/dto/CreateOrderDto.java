@@ -10,7 +10,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class OrderCreateDto {
+public class CreateOrderDto {
 
     @NotNull(message = "Размеры парковочного места обязательны")
     @Pattern(regexp = "(?i)S|M|L|XL|XXL", message = "введен некорректный размер парковочного места")

@@ -21,7 +21,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
@@ -50,7 +49,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
     }
 
-    public List<OrderInfoDto> forViewOrdersByUser(AnEntityWithAnIdOnlyDto dto){
+    public List<InfoOrderDto> forViewOrdersByUser(AnEntityWithAnIdOnlyDto dto){
         User user = userRepository.findById(dto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден."));
         List<Order> orders = orderRepository.findAllOrderByUser(user);
@@ -60,7 +59,7 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
     }
 
-    public List<OrderInfoDto> forViewMyOrders(User user){
+    public List<InfoOrderDto> forViewMyOrders(User user){
         List<Order> orders = orderRepository.findAllOrderByUser(user);
 
         if(orders.isEmpty())
@@ -71,27 +70,18 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
     }
 
-    private int orderRate(LocalDateTime start, LocalDateTime end, OrderCreateDto dto){//тарифный план
-        long hours = Duration.between(start, end).toHours();
-        int pricePerHours = ParkingSlotSize.getPriceByName(dto.getSize());
-        double price;
-
-        long month = ChronoUnit.MONTHS.between(start, end);
-
-        if(hours <= 24)
-            price = hours * pricePerHours;//цена кол-во часов * стоимость часа
-        else if(month < 1)
-            price = hours * pricePerHours * 0.58; //больше одного дня скидка 42% за час
-        else
-            price = hours * pricePerHours * 0.34;//месяц и более
-
-        return (int) Math.round(price);
-    }
-
     @Transactional
-    public OrderInfoDto fromCreateOrder(OrderCreateDto orderDto, User user){
+    public InfoOrderDto fromCreateOrder(CreateOrderDto orderDto, User user){
 
-        int price = orderRate(orderDto.getStartTime(), orderDto.getEndTime(), orderDto);
+        LocalDateTime startTime = orderDto.getStartTime();
+        LocalDateTime endTime = orderDto.getEndTime();
+
+        if(Duration.between(startTime, endTime).toMinutes() < 10)
+            throw new IllegalArgumentException("Минимальный заказ от 10 минут.");
+
+        String size = orderDto.getSize();
+
+        int price = orderRate(startTime, endTime, size);
 
         if(!orderAndUserUtilsService.balanceUser(user, price)){//проверка баланса пользователя
             throw new IllegalArgumentException(
@@ -101,8 +91,8 @@ public class OrderServiceImpl implements OrderService {
         }else
             user.setBalance(user.getBalance() - price);
 
-        ParkingSlotSize size = ParkingSlotSize.fromStringParking(orderDto.getSize());//получаем объект enum с размером
-        List<ParkingSpace> spaces = parkingRepository.findByParkingSlotSize(size);//если есть парковочное место с таким айди, получаем её
+        ParkingSlotSize parkSize = ParkingSlotSize.fromStringParking(size);//получаем объект enum с размером
+        List<ParkingSpace> spaces = parkingRepository.findByParkingSlotSize(parkSize);//если есть парковочное место с таким айди, получаем её
 
         if(spaces.isEmpty())
             throw new EntityNotFoundException("Парковочное место не найдено.");
@@ -117,8 +107,8 @@ public class OrderServiceImpl implements OrderService {
                 user,
                 freeSpace,
                 price,
-                orderDto.getStartTime(),
-                orderDto.getEndTime()
+                startTime,
+                endTime
         );
 
         save(order);
@@ -127,12 +117,15 @@ public class OrderServiceImpl implements OrderService {
         return convertToDto(order);
     }
 
-    public List<OrderInfoDto> allActiveOrdersByUserName(String userName){
+    public List<InfoOrderDto> allActiveOrdersByUserName(String userName){
         User user = userRepository.findByUserName(userName)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден."));
 
         LocalDateTime now = LocalDateTime.now();
         List<Order> orders = orderRepository.findAllActiveOrdersAfterNow(user, now);//получаем только активные заказы
+
+        if(orders.isEmpty())
+            throw new EntityNotFoundException("Не найдено активных заказов.");
 
         return orders.stream()
                 .map(this::convertToDto)
@@ -140,23 +133,38 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional
-    public OrderInfoDto forTerminatedOrder(TerminateOrderDto request, User user){
+    public InfoOrderDto forTerminatedOrder(TerminateOrderDto request, User user){
+        int fine = 0;
+        LocalDateTime now = LocalDateTime.now();
         Order order = orderRepository.findByUserAndId(user, request.getOrderId())
-            .filter(o -> o.getOrderSlotStatus() == OrderSlotStatus.ACTIVE ||
-                o.getOrderSlotStatus() == OrderSlotStatus.OVERDUE)
+            .filter(o -> o.getOrderSlotStatus() != OrderSlotStatus.COMPLETED)
             .orElseThrow(() -> new EntityNotFoundException(
-                "У вас нет заказов с таким id, либо заказы завершенные."
+                "У вас нет заказа с таким id, либо заказ завершен."
             ));
+
+        if(order.getOrderSlotStatus() == OrderSlotStatus.OVERDUE){
+            String size = order.getParking().getParkingSlotSize().name();
+            fine = orderRate(order.getEndTime(), now, size);
+            if(user.getBalance() < fine)
+                throw new IllegalArgumentException("Недостаточно средств для уплаты штрафа " + fine);
+
+            user.setBalance(user.getBalance() - fine);
+        }
+
+
 
         order.getParking().setStatus(true);
         order.setOrderSlotStatus(OrderSlotStatus.COMPLETED);
         //можно реализовать возврат денежных средств.
 
-        return convertToDto(order);
+        InfoOrderDto dto = convertToDto(order);
+        dto.setFine(fine);
+
+        return dto;
     }
 
     @Transactional
-    public OrderInfoDto forExtendOrder(ExtendOrderDto request, User user){//
+    public InfoOrderDto forExtendOrder(ExtendOrderDto request, User user){//
         //найти активные заказы пользователя
         List<Order> orders = orderRepository.findAllByUserWithParking(user);
 
@@ -175,6 +183,26 @@ public class OrderServiceImpl implements OrderService {
         extendOrder(order, user, order.getEndTime(), extend);
 
         return convertToDto(order);
+    }
+
+    private int orderRate(LocalDateTime start, LocalDateTime end, String size){//тарифный план
+        long hours = Duration.between(start, end).toHours();
+        long minutes = Duration.between(start, end).toMinutes();
+        int pricePerHours = ParkingSlotSize.getPriceByName(size);
+        double price;
+
+        long month = ChronoUnit.MONTHS.between(start, end);
+
+        if(minutes < 60)
+            price = minutes * pricePerHours * 0.10;//скидка 90%
+        else if(hours <= 24)
+            price = hours * pricePerHours;//цена кол-во часов * стоимость часа
+        else if(month < 1)
+            price = hours * pricePerHours * 0.58; //больше одного дня скидка 42% за час
+        else
+            price = hours * pricePerHours * 0.34;//месяц и более скидка 66% за час
+
+        return (int) Math.round(price);
     }
 
     private void extendOrder(Order order, User user, LocalDateTime endTime, LocalDateTime extendTime){
@@ -196,13 +224,13 @@ public class OrderServiceImpl implements OrderService {
         userRepository.save(user);
     }
 
-    public List<OrderInfoDto> forAllOrders(){//
+    public List<InfoOrderDto> forAllOrders(){//
         return orderRepository.findAll().stream()
                 .map(this::convertToDto)
                 .toList();
     }
 
-    public List<OrderInfoDto> forViewActiveOrders(){//
+    public List<InfoOrderDto> forViewActiveOrders(){//
         List<Order> active = orderRepository.findAllActiveOrder();
 
         return active.stream()
@@ -210,8 +238,8 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
     }
 
-    public OrderInfoDto convertToDto(Order order){
-        return modelMapper.map(order, OrderInfoDto.class);
+    public InfoOrderDto convertToDto(Order order){
+        return modelMapper.map(order, InfoOrderDto.class);
     }
 
 

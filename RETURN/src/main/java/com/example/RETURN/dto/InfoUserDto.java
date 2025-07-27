@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class UserInfoDto {
+public class InfoUserDto {
 
     private int id;
 
@@ -20,6 +20,6 @@ public class UserInfoDto {
 
     private List<CarDto> cars = new ArrayList<>();
 
-    private List<OrderInfoDto> orders = new ArrayList<>();
+    private List<InfoOrderDto> orders = new ArrayList<>();
 
 }

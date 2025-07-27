@@ -21,10 +21,8 @@ public class Order {
     @Column(name = "status")
     private OrderSlotStatus orderSlotStatus = OrderSlotStatus.ACTIVE;//статус заказа
 
-    @FutureOrPresent
     private LocalDateTime startTime;//начало парковки
 
-    @Future
     private LocalDateTime endTime;//конец парковки
 
     @ManyToOne

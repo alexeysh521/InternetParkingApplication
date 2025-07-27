@@ -2,6 +2,7 @@ package com.example.RETURN.services;
 
 import com.example.RETURN.dto.AnEntityWithAnIdOnlyDto;
 import com.example.RETURN.dto.CreateParkingSpaceDto;
+import com.example.RETURN.dto.InfoOrderRateDto;
 import com.example.RETURN.dto.InfoParkingSpaceDto;
 import com.example.RETURN.enums.ParkingSlotNumber;
 import com.example.RETURN.enums.ParkingSlotSize;
@@ -10,11 +11,11 @@ import com.example.RETURN.repositories.ParkingRepository;
 import com.example.RETURN.services.impl.ParkingService;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @Transactional(readOnly = true)
@@ -34,12 +35,20 @@ public class ParkingServiceImpl implements ParkingService {
         parkingRepository.save(parking);
     }
 
-    public List<ParkingSpace> findAll(){
-        return parkingRepository.findAll();
+    public List<InfoParkingSpaceDto> fromViewAllParkingSpaces(){
+        return parkingRepository.findAll().stream()
+                .map(this::convertToDto)
+                .toList();
+    }
+
+    public List<InfoOrderRateDto> forParkingSpacesInformation(){
+        return Stream.of(ParkingSlotSize.values())//аналогично List.of().stream()
+                .map(this::convertEnumToDto)
+                .toList();
     }
 
     public List<InfoParkingSpaceDto> forFreeParkSpace(){
-        List<ParkingSpace> freeSpaces = findAll();
+        List<ParkingSpace> freeSpaces = parkingRepository.findAll();
 
         return freeSpaces.stream()
                 .filter(ParkingSpace::isStatus)
@@ -70,15 +79,22 @@ public class ParkingServiceImpl implements ParkingService {
 
         return space.stream()
                 .filter(ParkingSpace::isStatus)//если он true - то удалит, иначе исключение
-                .peek(ps -> parkingRepository.delete(ps))
+                .peek(parkingRepository::delete)
                 .map(this::convertToDto)
                 .findFirst()
                 .orElseThrow(() ->
-                        new EntityNotFoundException("Чтобы удалить парковочное место необходимо освободить его."));
+                        new EntityNotFoundException("Чтобы удалить парковочное место необходимо освободить его."
+                ));
     }
 
     public InfoParkingSpaceDto convertToDto(ParkingSpace space){
         return modelMapper.map(space, InfoParkingSpaceDto.class);
+    }
+
+    public InfoOrderRateDto convertEnumToDto(ParkingSlotSize enums){
+        InfoOrderRateDto dto = modelMapper.map(enums, InfoOrderRateDto.class);
+        dto.setName(enums.name());
+        return dto;
     }
 
 }

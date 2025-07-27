@@ -1,7 +1,7 @@
 package com.example.RETURN.services.impl;
 
 import com.example.RETURN.dto.AccountOperationDto;
-import com.example.RETURN.dto.UserInfoDto;
+import com.example.RETURN.dto.InfoUserDto;
 import com.example.RETURN.models.User;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public interface UserService {
 
     AccountOperationDto forBalanceOperation(AccountOperationDto depositDto, User user);
 
-    List<UserInfoDto> forAllUsers();
+    List<InfoUserDto> forAllUsers();
 
-    UserInfoDto convertToDto(User user);
+    InfoUserDto convertToDto(User user);
 }

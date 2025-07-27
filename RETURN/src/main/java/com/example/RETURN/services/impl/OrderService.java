@@ -10,20 +10,20 @@ public interface OrderService {
 
     void save(Order order);
 
-    List<OrderInfoDto> forViewOrdersByUser(AnEntityWithAnIdOnlyDto dto);
+    List<InfoOrderDto> forViewOrdersByUser(AnEntityWithAnIdOnlyDto dto);
 
-    OrderInfoDto fromCreateOrder(OrderCreateDto orderDto, User user);
+    InfoOrderDto fromCreateOrder(CreateOrderDto orderDto, User user);
 
-    List<OrderInfoDto> allActiveOrdersByUserName(String userName);
+    List<InfoOrderDto> allActiveOrdersByUserName(String userName);
 
-    OrderInfoDto forTerminatedOrder(TerminateOrderDto request, User user);
+    InfoOrderDto forTerminatedOrder(TerminateOrderDto request, User user);
 
-    OrderInfoDto forExtendOrder(ExtendOrderDto request, User user);
+    InfoOrderDto forExtendOrder(ExtendOrderDto request, User user);
 
-    List<OrderInfoDto> forAllOrders();
+    List<InfoOrderDto> forAllOrders();
 
-    List<OrderInfoDto> forViewActiveOrders();
+    List<InfoOrderDto> forViewActiveOrders();
 
-    OrderInfoDto convertToDto(Order order);
+    InfoOrderDto convertToDto(Order order);
 
 }

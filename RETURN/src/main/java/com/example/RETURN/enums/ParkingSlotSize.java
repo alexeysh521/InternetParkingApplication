@@ -9,14 +9,14 @@ public enum ParkingSlotSize {
     XL(3.0, 6.0, 2.5, 90),
     XXL(3.0, 10.0, 3.5, 150);
 
-    private final double wight;
+    private final double height;
     private final double length;
     private final double width;
     private final int hourlyPrice;
 
-    ParkingSlotSize(double wight, double width, double length, int price) {
+    ParkingSlotSize(double height, double width, double length, int price) {
         this.length = length;
-        this.wight = wight;
+        this.height = height;
         this.width = width;
         this.hourlyPrice = price;
     }
@@ -29,8 +29,8 @@ public enum ParkingSlotSize {
         return width;
     }
 
-    public double getWight() {
-        return wight;
+    public double getHeight() {
+        return height;
     }
 
     public int getHourlyPrice() {

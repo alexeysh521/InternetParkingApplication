@@ -6,7 +6,6 @@ import com.example.RETURN.models.User;
 import com.example.RETURN.repositories.UserRepository;
 import com.example.RETURN.services.impl.UserService;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +64,7 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    public List<UserInfoDto> forAllUsers(){//
+    public List<InfoUserDto> forAllUsers(){//
         List<User> users = userList();
 
         return users.stream()
@@ -73,8 +72,8 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
-    public UserInfoDto convertToDto(User user){
-        return modelMapper.map(user, UserInfoDto.class);
+    public InfoUserDto convertToDto(User user){
+        return modelMapper.map(user, InfoUserDto.class);
     }
 
 }

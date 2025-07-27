@@ -2,6 +2,7 @@ package com.example.RETURN.services.impl;
 
 import com.example.RETURN.dto.AnEntityWithAnIdOnlyDto;
 import com.example.RETURN.dto.CreateParkingSpaceDto;
+import com.example.RETURN.dto.InfoOrderRateDto;
 import com.example.RETURN.dto.InfoParkingSpaceDto;
 import com.example.RETURN.enums.ParkingSlotSize;
 import com.example.RETURN.models.ParkingSpace;
@@ -12,9 +13,11 @@ public interface ParkingService {
 
     void create(ParkingSpace parking);
 
-    List<ParkingSpace> findAll();
+    List<InfoParkingSpaceDto> fromViewAllParkingSpaces();
 
     List<InfoParkingSpaceDto> forFreeParkSpace();
+
+    List<InfoOrderRateDto> forParkingSpacesInformation();
 
     InfoParkingSpaceDto forCreateParkingSpace(CreateParkingSpaceDto parkingDto);
 

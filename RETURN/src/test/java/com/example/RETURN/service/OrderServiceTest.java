@@ -1,6 +1,6 @@
 //package com.example.RETURN.service;
 //
-//import com.example.RETURN.dto.OrderCreateDto;
+//import com.example.RETURN.dto.CreateOrderDto;
 //import com.example.RETURN.enums.ParkingSlotNumber;
 //import com.example.RETURN.enums.ParkingSlotSize;
 //import com.example.RETURN.models.Order;
@@ -53,8 +53,8 @@
 //        return user;
 //    }
 //
-//    public OrderCreateDto buildDto(String size){
-//        OrderCreateDto orderDto = new OrderCreateDto();
+//    public CreateOrderDto buildDto(String size){
+//        CreateOrderDto orderDto = new CreateOrderDto();
 //        orderDto.setSize(size);
 //        orderDto.setStartTime(startTime);
 //        orderDto.setEndTime(endTime);
@@ -144,7 +144,7 @@
 //    @Test
 //    void fromCreateOrder_whenValidInput_shouldCreateOrderAndReturnConfirmation(){
 //        User user = buildUser(10_000, "Maik");
-//        OrderCreateDto orderDto = buildDto("XL");
+//        CreateOrderDto orderDto = buildDto("XL");
 //
 //        long hours = Duration.between(orderDto.getStartTime(), orderDto.getEndTime()).toHours();
 //        long price = hours * (ParkingSlotSize.getPriceByName(orderDto.getSize()));
@@ -177,12 +177,12 @@
 //
 //    @Test
 //    void orderDtoValidation_shouldFail_whenStartEqualsEndTime(){
-//        OrderCreateDto orderDto = new OrderCreateDto();
+//        CreateOrderDto orderDto = new CreateOrderDto();
 //        LocalDateTime now = LocalDateTime.now();
 //        orderDto.setStartTime(now);
 //        orderDto.setEndTime(now);
 //
-//        Set<ConstraintViolation<OrderCreateDto>> violations = Validation.buildDefaultValidatorFactory()
+//        Set<ConstraintViolation<CreateOrderDto>> violations = Validation.buildDefaultValidatorFactory()
 //                .getValidator()
 //                .validate(orderDto);
 //
@@ -195,7 +195,7 @@
 //    @Test
 //    void fromCreateOrder_whenNoParkingFound_shouldThrow(){
 //        User user = buildUser(10_000, "Maik");
-//        OrderCreateDto orderDto = buildDto("XL");
+//        CreateOrderDto orderDto = buildDto("XL");
 //
 //        when(orderAndUserUtilsService.balance(any(), anyInt())).thenReturn(true);
 //        when(parkingRepository.findByParkingSlotSize(ParkingSlotSize.XL)).thenReturn(List.of());//имитация что нет XL парковок -> пустой список
@@ -206,7 +206,7 @@
 //    @Test
 //    void fromCreateOrder_whenAllSpacesOccupied_shouldThrow(){
 //        User user = buildUser(10_000, "Alex");
-//        OrderCreateDto orderDto = buildDto("XL");
+//        CreateOrderDto orderDto = buildDto("XL");
 //
 //        ParkingSpace parkingSpace = new ParkingSpace();
 //        parkingSpace.setStatus(false);
@@ -220,7 +220,7 @@
 //    @Test
 //    void fromCreateOrder_whenUserHasNotEnoughBalance_shouldReturnErrorMessage(){
 //        User user = buildUser(100, "Maik");
-//        OrderCreateDto orderDto = buildDto("XL");
+//        CreateOrderDto orderDto = buildDto("XL");
 //
 //        long hours = Duration.between(orderDto.getStartTime(), orderDto.getEndTime()).toHours();
 //        long price = hours * (ParkingSlotSize.getPriceByName(orderDto.getSize()));

@@ -1,16 +1,14 @@
 package com.example.RETURN.dto;
 
 import com.example.RETURN.enums.OrderSlotStatus;
-import com.example.RETURN.enums.ParkingSlotNumber;
-import com.example.RETURN.enums.ParkingSlotSize;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
-public class OrderInfoDto {
+public class InfoOrderDto {
 
-    //private UserInfoDto user;
+    //private InfoUserDto user;
     private int id;
 
     private int userId;
@@ -22,6 +20,8 @@ public class OrderInfoDto {
     private LocalDateTime endTime;
 
     private int price;
+
+    private int fine;
 
     private OrderSlotStatus orderSlotStatus;
 

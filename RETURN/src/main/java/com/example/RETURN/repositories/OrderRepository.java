@@ -1,5 +1,6 @@
 package com.example.RETURN.repositories;
 
+import com.example.RETURN.enums.OrderSlotStatus;
 import com.example.RETURN.models.Order;
 import com.example.RETURN.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,5 +25,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findAllOrderByUser(User user);
 
     Optional<Order> findByUserAndId(User user, Long id);
+
+    List<Order> findAllByOrderSlotStatusAndEndTimeBefore(OrderSlotStatus status, LocalDateTime endTime);
 
 }

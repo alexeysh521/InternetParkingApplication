@@ -7,7 +7,6 @@ import com.example.RETURN.services.OrderServiceImpl;
 import com.example.RETURN.services.ParkingServiceImpl;
 import com.example.RETURN.services.UserServiceImpl;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,11 +31,10 @@ public class ConsumerController {
         this.carService = carService;
     }
 
-    @GetMapping("/checkOverParkSpace")//посмотреть, сколько времени осталось до конца парковки.
+    @GetMapping("/check/active/orders")//посмотреть, сколько времени осталось до конца парковки.
     public ResponseEntity<?> checkOverdueParkingSpace(@AuthenticationPrincipal User user){
-        List<OrderInfoDto> activeOrderInfoDto = orderService.allActiveOrdersByUserName(user.getUserName());
-        if(activeOrderInfoDto.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Не найдено заказов.");
+        List<InfoOrderDto> activeOrderInfoDto = orderService.allActiveOrdersByUserName(user.getUserName());
+
         return ResponseEntity.ok(activeOrderInfoDto);
     }
 
@@ -52,7 +50,7 @@ public class ConsumerController {
     }
 
     @PostMapping("/create/order")//создать заказ
-    public ResponseEntity<?> orderParkingSpace(@Valid @RequestBody OrderCreateDto orderDto,
+    public ResponseEntity<?> orderParkingSpace(@Valid @RequestBody CreateOrderDto orderDto,
                                                @AuthenticationPrincipal User user){
         return ResponseEntity.ok(orderService.fromCreateOrder(orderDto, user));
     }
@@ -78,6 +76,11 @@ public class ConsumerController {
     public ResponseEntity<?> extendOrder(@Valid @RequestBody ExtendOrderDto request,
                                                          @AuthenticationPrincipal User user){
         return ResponseEntity.ok(orderService.forExtendOrder(request, user));
+    }
+
+    @GetMapping("/view/parkingSpaces/information")//просмотр всех данных о парковочных местах
+    public ResponseEntity<?> parkingSpacesInformation(){
+        return ResponseEntity.ok(parkingService.forParkingSpacesInformation());
     }
 
 }
