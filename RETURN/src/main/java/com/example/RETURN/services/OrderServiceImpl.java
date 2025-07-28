@@ -134,7 +134,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     public InfoOrderDto forTerminatedOrder(TerminateOrderDto request, User user){
+        int retMon = 0;
         int fine = 0;
+        int balance = user.getBalance();
         LocalDateTime now = LocalDateTime.now();
         Order order = orderRepository.findByUserAndId(user, request.getOrderId())
             .filter(o -> o.getOrderSlotStatus() != OrderSlotStatus.COMPLETED)
@@ -142,16 +144,20 @@ public class OrderServiceImpl implements OrderService {
                 "У вас нет заказа с таким id, либо заказ завершен."
             ));
 
-        if(order.getOrderSlotStatus() == OrderSlotStatus.OVERDUE){
-            String size = order.getParking().getParkingSlotSize().name();
-            fine = orderRate(order.getEndTime(), now, size);
-            if(user.getBalance() < fine)
-                throw new IllegalArgumentException("Недостаточно средств для уплаты штрафа " + fine);
+        String size = order.getParking().getParkingSlotSize().name();
 
-            user.setBalance(user.getBalance() - fine);
+        if(order.getEndTime().isAfter(now)) {//частичный возврат средств
+            retMon = completeOrderEarly(order.getStartTime(), order.getEndTime(), size);
+            user.setBalance(balance + retMon);
         }
 
+        if(order.getOrderSlotStatus() == OrderSlotStatus.OVERDUE){
+            fine = orderRate(order.getEndTime(), now, size);
+            if(balance < fine)
+                throw new IllegalArgumentException("Недостаточно средств для уплаты штрафа " + fine);
 
+            user.setBalance(balance - fine);
+        }
 
         order.getParking().setStatus(true);
         order.setOrderSlotStatus(OrderSlotStatus.COMPLETED);
@@ -159,6 +165,7 @@ public class OrderServiceImpl implements OrderService {
 
         InfoOrderDto dto = convertToDto(order);
         dto.setFine(fine);
+        dto.setReturnMoney(retMon);
 
         return dto;
     }
@@ -183,6 +190,10 @@ public class OrderServiceImpl implements OrderService {
         extendOrder(order, user, order.getEndTime(), extend);
 
         return convertToDto(order);
+    }
+
+    private int completeOrderEarly(LocalDateTime start, LocalDateTime end, String size){
+        return (int) Math.round(orderRate(start, end, size) * 0.7);
     }
 
     private int orderRate(LocalDateTime start, LocalDateTime end, String size){//тарифный план
@@ -241,6 +252,4 @@ public class OrderServiceImpl implements OrderService {
     public InfoOrderDto convertToDto(Order order){
         return modelMapper.map(order, InfoOrderDto.class);
     }
-
-
 }

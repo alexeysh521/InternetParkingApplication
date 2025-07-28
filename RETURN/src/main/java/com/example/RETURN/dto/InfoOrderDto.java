@@ -23,6 +23,8 @@ public class InfoOrderDto {
 
     private int fine;
 
+    private int returnMoney;
+
     private OrderSlotStatus orderSlotStatus;
 
     private CreateParkingSpaceDto parking;
